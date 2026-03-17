@@ -1,0 +1,13 @@
+# Build
+cpp/build/
+cpp/server
+*.o
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/

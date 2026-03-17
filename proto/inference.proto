@@ -1,0 +1,27 @@
+// inference.proto
+// gRPC 接口定义文件
+// 用于 Python ↔ C++ 通信
+
+syntax = "proto3";  // 使用 Protobuf 第 3 版
+
+package ai_service;  // 命名空间
+
+// 定义服务 - 相当于 HTTP 的接口
+service TensorRTEngine {
+    // 一个 RPC 方法: 接收 InferRequest，返回 InferResponse
+    rpc RunInference (InferRequest) returns (InferResponse) {}
+}
+
+// 请求格式 - 相当于 HTTP POST 的 Body
+message InferRequest {
+    bytes image_data = 1;  // 图像的二进制流
+    int32 width = 2;       // 图像宽度
+    int32 height = 3;     // 图像高度
+}
+
+// 响应格式 - 相当于 HTTP Response
+message InferResponse {
+    bool success = 1;                    // 推理是否成功
+    repeated float bounding_boxes = 2;    // 目标框坐标数组 (List)
+    string message = 3;                  // 附加信息
+}
