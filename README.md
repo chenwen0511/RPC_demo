@@ -51,13 +51,19 @@ RPC_demo/
 
 ### 1. 安装依赖
 
+**请使用 Python 虚拟环境**，不要直接在系统 Python 里安装依赖。支持 Python 3.8+（含 3.13）。
+
 ```bash
-# Python 依赖
+# Python 依赖（在项目根目录创建并激活虚拟环境）
+python3 -m venv .venv
+source .venv/bin/activate   # Linux/macOS；Windows 用 .venv\Scripts\activate
 pip install grpcio grpcio-tools
 
 # C++ 依赖 (Ubuntu)
-sudo apt install -y build-essential cmake grpc++ libprotobuf-dev protobuf-compiler-grpc
+sudo apt install -y build-essential cmake libgrpc++-dev libprotobuf-dev protobuf-compiler-grpc
 ```
+
+之后每次运行 Python 客户端前，先执行 `source .venv/bin/activate` 激活虚拟环境。
 
 ### 2. 生成 Proto 代码
 
@@ -65,18 +71,16 @@ sudo apt install -y build-essential cmake grpc++ libprotobuf-dev protobuf-compil
 # Python
 cd python
 python3 -m grpc_tools.protoc -I../proto --python_out=. --grpc_python_out=. ../proto/inference.proto
-
-# C++ (在 cpp 目录执行)
-protoc -I../proto --grpc_out=. --plugin=protoc-gen-grpc=$(which grpc_cpp_plugin) ../proto/inference.proto
-protoc -I../proto --cpp_out=. ../proto/inference.proto
 ```
+
+> C++ 侧的 `.pb.cc/.pb.h` 会在编译时由 CMake 自动生成到 `cpp/build/`，无需手动执行 `protoc`。
 
 ### 3. 编译 C++ 服务端
 
 ```bash
 cd cpp
 mkdir build && cd build
-cmake ..
+cmake -DgRPC_DIR=/usr/local/lib/cmake/grpc ..
 make -j4
 ```
 
@@ -86,7 +90,8 @@ make -j4
 # 终端 1: 启动 C++ 服务端
 ./build/server
 
-# 终端 2: 运行 Python 客户端
+# 终端 2: 运行 Python 客户端（先激活虚拟环境）
+source .venv/bin/activate   # 若尚未激活
 cd python
 python3 client.py
 ```
@@ -165,13 +170,26 @@ response = stub.RunInference(request)
 
 ## 常见问题
 
-### Q: 编译报错找不到 grpc?
+### Q: 执行 cmake 时提示 `cmake: command not found`?
+
+说明系统未安装 cmake，需先安装 C++ 构建依赖（见上文「安装依赖」）。若只补装 cmake：
 
 ```bash
-# 安装完整 gRPC
+sudo apt install -y cmake
+```
+
+装好后再执行 `cmake ..` 和 `make -j4`。
+
+### Q: 编译报错找不到 grpc?
+
+在**任意目录**执行（如 `~` 或 `/tmp`），不要在本项目 `RPC_demo` 里执行。编译完成后 gRPC 会安装到系统，再回到本项目的 `cpp/build` 重新执行 `cmake ..` 和 `make -j4`。
+
+```bash
+# 安装完整 gRPC（从源码编译，耗时较长）
 git clone --recurse-submodules https://github.com/grpc/grpc
 cd grpc
 mkdir -p cmake/build
+cd cmake/build
 cmake -DCMAKE_BUILD_TYPE=Release -DgRPC_BUILD_TESTS=OFF ../..
 make -j4
 sudo make install
