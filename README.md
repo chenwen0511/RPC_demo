@@ -185,6 +185,7 @@ sudo apt install -y cmake
 在**任意目录**执行（如 `~` 或 `/tmp`），不要在本项目 `RPC_demo` 里执行。编译完成后 gRPC 会安装到系统（通常是 `/usr/local`），再回到本项目的 `cpp/build` 重新执行 `cmake` 和 `make`。
 
 ```bash
+cd /tmp
 # 安装完整 gRPC（从源码编译，耗时较长）
 git clone --recurse-submodules https://github.com/grpc/grpc
 cd grpc
@@ -194,6 +195,8 @@ cmake -DCMAKE_BUILD_TYPE=Release -DgRPC_BUILD_TESTS=OFF ../..
 make -j4
 sudo make install
 ```
+
+> 注意：必须在 `grpc/cmake/build` 目录执行上面的 `cmake ... ../..`。如果你在 `grpc` 根目录直接执行，会把 `../..` 解析到 `/`，从而报错 “The source directory \"/\" does not appear to contain CMakeLists.txt.”。
 
 如果你已经从源码安装到了 `/usr/local`，但本项目 `cmake ..` 仍找不到 gRPC，请显式指定：
 
